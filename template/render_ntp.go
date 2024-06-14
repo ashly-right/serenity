@@ -9,11 +9,12 @@ import (
 func (t *Template) RenderNTP(options *option.Options) error {
 	if t.EnableNTP {
 		options.NTP = &option.NTPOptions{
-			Enabled:    true,
-			ServerPort: 123,
-			Server:     "time.apple.com",
-			Interval:   option.Duration(time.Minute * 30),
+			Enabled:  true,
+			Interval: option.Duration(time.Minute * 30),
 		}
+
+		options.NTP.ServerPort = 123
+		options.NTP.Server = "time.apple.com"
 
 		if t.CustomNTP != nil {
 			if t.CustomNTP.Server != "" {
