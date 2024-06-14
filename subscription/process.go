@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/sagernet/serenity/option"
+	C "github.com/sagernet/sing-box/constant"
 	boxOption "github.com/sagernet/sing-box/option"
 	"github.com/sagernet/sing/common"
 	E "github.com/sagernet/sing/common/exceptions"
@@ -66,29 +67,44 @@ func (o *ProcessOptions) Process(outbounds []boxOption.Outbound) []boxOption.Out
 	newOutbounds := make([]boxOption.Outbound, 0, len(outbounds))
 	renameResult := make(map[string]string)
 	for _, outbound := range outbounds {
-		if len(o.filter) > 0 {
-			if !common.Any(o.filter, func(it *regexp.Regexp) bool {
-				return it.MatchString(outbound.Tag)
-			}) {
-				continue
+		var inProcess bool
+		if len(o.filter) == 0 && len(o.FilterType) == 0 && len(o.exclude) == 0 && len(o.ExcludeType) == 0 {
+			inProcess = true
+		} else {
+			if len(o.filter) > 0 {
+				if common.Any(o.filter, func(it *regexp.Regexp) bool {
+					return it.MatchString(outbound.Tag)
+				}) {
+					inProcess = true
+				}
+			}
+			if !inProcess && len(o.FilterType) > 0 {
+				if common.Contains(o.FilterType, outbound.Type) {
+					inProcess = true
+				}
+			}
+			if !inProcess && len(o.exclude) > 0 {
+				if !common.Any(o.exclude, func(it *regexp.Regexp) bool {
+					return it.MatchString(outbound.Tag)
+				}) {
+					inProcess = true
+				}
+			}
+			if !inProcess && len(o.ExcludeType) > 0 {
+				if !common.Contains(o.ExcludeType, outbound.Type) {
+					inProcess = true
+				}
 			}
 		}
-		if len(o.FilterOutboundType) > 0 {
-			if !common.Contains(o.FilterOutboundType, outbound.Type) {
-				continue
-			}
+		if o.Invert {
+			inProcess = !inProcess
 		}
-		if len(o.exclude) > 0 {
-			if common.Any(o.exclude, func(it *regexp.Regexp) bool {
-				return it.MatchString(outbound.Tag)
-			}) {
-				continue
-			}
+		if !inProcess {
+			newOutbounds = append(newOutbounds, outbound)
+			continue
 		}
-		if len(o.ExcludeOutboundType) > 0 {
-			if common.Contains(o.ExcludeOutboundType, outbound.Type) {
-				continue
-			}
+		if o.Remove {
+			continue
 		}
 		originTag := outbound.Tag
 		if len(o.rename) > 0 {
@@ -102,6 +118,18 @@ func (o *ProcessOptions) Process(outbounds []boxOption.Outbound) []boxOption.Out
 		outbound.Tag = strings.TrimSpace(outbound.Tag)
 		if originTag != outbound.Tag {
 			renameResult[originTag] = outbound.Tag
+		}
+		if o.RewriteMultiplex != nil {
+			switch outbound.Type {
+			case C.TypeShadowsocks:
+				outbound.ShadowsocksOptions.Multiplex = o.RewriteMultiplex
+			case C.TypeTrojan:
+				outbound.TrojanOptions.Multiplex = o.RewriteMultiplex
+			case C.TypeVMess:
+				outbound.VMessOptions.Multiplex = o.RewriteMultiplex
+			case C.TypeVLESS:
+				outbound.VLESSOptions.Multiplex = o.RewriteMultiplex
+			}
 		}
 		newOutbounds = append(newOutbounds, outbound)
 	}

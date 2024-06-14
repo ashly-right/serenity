@@ -7,7 +7,7 @@ import (
 
 	"github.com/sagernet/sing-box/log"
 	"github.com/sagernet/sing-box/option"
-	"github.com/sagernet/sing-dns"
+	dns "github.com/sagernet/sing-dns"
 	"github.com/sagernet/sing/common"
 	N "github.com/sagernet/sing/common/network"
 	"github.com/sagernet/sing/common/task"
@@ -24,7 +24,7 @@ func Deduplication(ctx context.Context, servers []option.Outbound) []option.Outb
 			Context:      ctx,
 			Dialer:       N.SystemDialer,
 			Address:      "tls://1.1.1.1",
-			ClientSubnet: netip.MustParseAddr("114.114.114.114"),
+			ClientSubnet: netip.MustParsePrefix("114.114.114.114/24"),
 		})),
 	}
 
@@ -45,9 +45,9 @@ func Deduplication(ctx context.Context, servers []option.Outbound) []option.Outb
 			}
 			return nil
 		})
-		resolveGroup.Concurrency(5)
-		_ = resolveGroup.Run(ctx)
 	}
+	resolveGroup.Concurrency(5)
+	_ = resolveGroup.Run(ctx)
 	uniqueServerMap := make(map[netip.AddrPort]bool)
 	var newServers []option.Outbound
 	for index, server := range servers {

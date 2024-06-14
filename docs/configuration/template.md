@@ -3,31 +3,34 @@
 ```json
 {
   "name": "",
-  
+  "extend": "",
+
   // Global
-  
+
+  "log": {},
   "domain_strategy": "",
   "disable_traffic_bypass": false,
   "disable_rule_set": false,
   "remote_resolve": false,
-  
+
   // DNS
-  
+
   "dns_default": "",
   "dns_local": "",
   "enable_fakeip": false,
   "pre_dns_rules": [],
   "custom_dns_rules": [],
-  
+
   // Inbound
-  
+
+  "inbounds": [],
   "disable_tun": false,
   "disable_system_proxy": false,
   "custom_tun": {},
   "custom_mixed": {},
-  
+
   // Outbound
-  
+
   "extra_groups": [
     {
       "tag": "",
@@ -45,9 +48,9 @@
   "custom_direct": {},
   "custom_selector": {},
   "custom_urltest": {},
-  
+
   // Route
-  
+
   "disable_default_rules": false,
   "pre_rules": [],
   "custom_rules": [],
@@ -55,9 +58,10 @@
   "custom_geoip": {},
   "custom_geosite": {},
   "custom_rule_set": [],
-  
+  "post_rule_set": [],
+
   // Experimental
-  
+
   "disable_cache_file": false,
   "disable_clash_mode": false,
   "clash_mode_rule": "",
@@ -71,7 +75,7 @@
   "custom_ntp": {},
 
   // Debug
-  
+
   "pprof_listen": "",
   "memory_limit": ""
 }
@@ -84,6 +88,14 @@
 ==Required==
 
 Profile name.
+
+#### extend
+
+Extend from another profile.
+
+#### log
+
+Log configuration, see [Log](https://sing-box.sagernet.org/configuration/log/).
 
 #### domain_strategy
 
@@ -134,6 +146,10 @@ Will be applied before traffic bypassing rules.
 List of [DNS Rule](https://sing-box.sagernet.org/configuration/dns/rule/).
 
 No default traffic bypassing DNS rules will be generated if not empty.
+
+#### inbounds
+
+List of [Inbound](https://sing-box.sagernet.org/configuration/inbound/).
 
 #### disable_tun
 
@@ -243,9 +259,15 @@ Custom [GeoSite](https://sing-box.sagernet.org/configuration/route/geosite/) tem
 
 #### custom_rule_set
 
-List of [RuleSet](https://sing-box.sagernet.org/configuration/rule-set/).
+List of [RuleSet](/configuration/shared/rule-set/).
 
 Default rule sets will not be generated if not empty.
+
+#### post_rule_set
+
+List of [RuleSet](/configuration/shared/rule-set/).
+
+Will be applied after default rule sets.
 
 #### disable_cache_file
 

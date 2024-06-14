@@ -13,7 +13,7 @@ func (t *Template) renderRoute(metadata M.Metadata, options *option.Options) err
 		options.Route = &option.RouteOptions{
 			GeoIP:   t.CustomGeoIP,
 			Geosite: t.CustomGeosite,
-			RuleSet: t.CustomRuleSet,
+			RuleSet: t.renderRuleSet(t.CustomRuleSet),
 		}
 	}
 	if !t.DisableTrafficBypass {
@@ -43,30 +43,6 @@ func (t *Template) renderRoute(metadata M.Metadata, options *option.Options) err
 				Outbound: DNSTag,
 			},
 		},
-	}
-	if !t.DisableTrafficBypass && !t.DisableDefaultRules {
-		options.Route.Rules = append(options.Route.Rules, option.Rule{
-			Type: C.RuleTypeLogical,
-			LogicalOptions: option.LogicalRule{
-				Mode: C.LogicalTypeOr,
-				Rules: []option.Rule{
-					{
-						Type: C.RuleTypeDefault,
-						DefaultOptions: option.DefaultRule{
-							Network: []string{N.NetworkUDP},
-							Port:    []uint16{443},
-						},
-					},
-					{
-						Type: C.RuleTypeDefault,
-						DefaultOptions: option.DefaultRule{
-							Protocol: []string{C.ProtocolSTUN},
-						},
-					},
-				},
-				Outbound: BlockTag,
-			},
-		})
 	}
 	directTag := t.DirectTag
 	defaultTag := t.DefaultTag
@@ -140,6 +116,28 @@ func (t *Template) renderRoute(metadata M.Metadata, options *option.Options) err
 		}
 	} else {
 		options.Route.Rules = append(options.Route.Rules, t.CustomRules...)
+	}
+	if !t.DisableTrafficBypass && !t.DisableDefaultRules {
+		blockTag := t.BlockTag
+		if blockTag == "" {
+			blockTag = DefaultBlockTag
+		}
+		options.Route.Rules = append(options.Route.Rules, option.Rule{
+			Type: C.RuleTypeLogical,
+			LogicalOptions: option.LogicalRule{
+				Mode: C.LogicalTypeOr,
+				Rules: []option.Rule{
+					{
+						Type: C.RuleTypeDefault,
+						DefaultOptions: option.DefaultRule{
+							Network: []string{N.NetworkUDP},
+							Port:    []uint16{443},
+						},
+					},
+				},
+				Outbound: blockTag,
+			},
+		})
 	}
 	return nil
 }

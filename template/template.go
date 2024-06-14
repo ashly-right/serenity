@@ -19,9 +19,9 @@ const (
 	DNSFakeIPTag      = "remote"
 	DefaultDNS        = "tls://8.8.8.8"
 	DefaultDNSLocal   = "https://223.5.5.5/dns-query"
-	DefaultDefaultTag = "Default"
+	DefaultDefaultTag = "default"
 	DefaultDirectTag  = "direct"
-	BlockTag          = "block"
+	DefaultBlockTag   = "block"
 	DNSTag            = "dns"
 	DefaultURLTestTag = "URLTest"
 )
@@ -41,9 +41,14 @@ type ExtraGroup struct {
 
 func (t *Template) Render(metadata M.Metadata, profileName string, outbounds [][]boxOption.Outbound, subscriptions []*subscription.Subscription) (*boxOption.Options, error) {
 	var options boxOption.Options
+	options.Log = t.Log
 	err := t.renderDNS(metadata, &options)
 	if err != nil {
 		return nil, E.Cause(err, "render dns")
+	}
+	err = t.renderRoute(metadata, &options)
+	if err != nil {
+		return nil, E.Cause(err, "render route")
 	}
 	err = t.renderInbounds(metadata, &options)
 	if err != nil {
@@ -52,10 +57,6 @@ func (t *Template) Render(metadata M.Metadata, profileName string, outbounds [][
 	err = t.renderOutbounds(metadata, &options, outbounds, subscriptions)
 	if err != nil {
 		return nil, E.Cause(err, "render outbounds")
-	}
-	err = t.renderRoute(metadata, &options)
-	if err != nil {
-		return nil, E.Cause(err, "render route")
 	}
 	err = t.renderExperimental(metadata, &options, profileName)
 	if err != nil {

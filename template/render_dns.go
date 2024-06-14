@@ -8,7 +8,7 @@ import (
 	"github.com/sagernet/serenity/common/semver"
 	C "github.com/sagernet/sing-box/constant"
 	"github.com/sagernet/sing-box/option"
-	"github.com/sagernet/sing-dns"
+	dns "github.com/sagernet/sing-dns"
 	"github.com/sagernet/sing/common"
 	BM "github.com/sagernet/sing/common/metadata"
 
@@ -23,7 +23,7 @@ func (t *Template) renderDNS(metadata M.Metadata, options *option.Options) error
 		domainStrategy = option.DomainStrategy(dns.DomainStrategyPreferIPv4)
 	}
 	options.DNS = &option.DNSOptions{
-		ReverseMapping: !t.DisableTrafficBypass && !metadata.Platform.IsApple(),
+		ReverseMapping: !t.DisableTrafficBypass && metadata.Platform != M.PlatformUnknown && !metadata.Platform.IsApple(),
 		DNSClientOptions: option.DNSClientOptions{
 			Strategy:         domainStrategy,
 			IndependentCache: t.EnableFakeIP,
@@ -36,6 +36,10 @@ func (t *Template) renderDNS(metadata M.Metadata, options *option.Options) error
 	dnsLocal := t.DNSLocal
 	if dnsLocal == "" {
 		dnsLocal = DefaultDNSLocal
+	}
+	directTag := t.DirectTag
+	if directTag == "" {
+		directTag = DefaultDirectTag
 	}
 	defaultDNSOptions := option.DNSServerOptions{
 		Tag:     DNSDefaultTag,
@@ -58,7 +62,7 @@ func (t *Template) renderDNS(metadata M.Metadata, options *option.Options) error
 		localDNSOptions = option.DNSServerOptions{
 			Tag:     DNSLocalTag,
 			Address: dnsLocal,
-			Detour:  DefaultDirectTag,
+			Detour:  directTag,
 		}
 		if dnsLocalUrl, err := url.Parse(dnsLocal); err == nil && BM.IsDomainName(dnsLocalUrl.Hostname()) {
 			localDNSOptions.AddressResolver = DNSLocalSetupTag
@@ -158,6 +162,7 @@ func (t *Template) renderDNS(metadata M.Metadata, options *option.Options) error
 								Type: C.RuleTypeDefault,
 								DefaultOptions: option.DefaultDNSRule{
 									RuleSet: []string{"geosite-geolocation-!cn"},
+									Invert:  true,
 								},
 							},
 							{

@@ -9,10 +9,13 @@
     {
       "filter": [],
       "exclude": [],
-      "filter_outbound_type": [],
-      "exclude_outbound_type": [],
+      "filter_type": [],
+      "exclude_type": [],
+      "invert": false,
+      "remove": false,
       "rename": {},
-      "remove_emoji": false
+      "remove_emoji": false,
+      "rewrite_multiplex": {}
     }
   ],
   "deduplication": false,
@@ -55,19 +58,27 @@ Process rules.
 
 #### process.filter
 
-Regexp filter rules, non-matching outbounds will be removed.
+Regexp filter rules, match outbound tag name.
 
 #### process.exclude
 
-Regexp exclude rules, matching outbounds will be removed.
+Regexp exclude rules, match outbound tag name.
 
-#### process.filter_outbound_type
+#### process.filter_type
 
-Outbound type filter rules, non-matching outbounds will be removed.
+Filter rules, match outbound type.
 
-#### process.exclude_outbound_type
+#### process.exclude_type
 
-Outbound type exclude rules, matching outbounds will be removed.
+Exclude rules, match outbound type.
+
+#### process.invert
+
+Invert filter results.
+
+#### process.remove
+
+Remove outbounds that match the rules.
 
 #### process.rename
 
@@ -76,6 +87,10 @@ Regexp rename rules, matching outbounds will be renamed.
 #### process.remove_emoji
 
 Remove emojis in outbound tags.
+
+#### process.rewrite_multiplex
+
+Rewrite [Multiplex](https://sing-box.sagernet.org/configuration/shared/multiplex) options.
 
 #### deduplication
 

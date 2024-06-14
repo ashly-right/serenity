@@ -15,13 +15,14 @@ func (t *Template) renderOutbounds(metadata M.Metadata, options *option.Options,
 	if defaultTag == "" {
 		defaultTag = DefaultDefaultTag
 	}
-	if options.Route == nil {
-		options.Route = &option.RouteOptions{}
-	}
 	options.Route.Final = defaultTag
 	directTag := t.DirectTag
 	if directTag == "" {
 		directTag = DefaultDirectTag
+	}
+	blockTag := t.BlockTag
+	if blockTag == "" {
+		blockTag = DefaultBlockTag
 	}
 	options.Outbounds = []option.Outbound{
 		{
@@ -30,7 +31,7 @@ func (t *Template) renderOutbounds(metadata M.Metadata, options *option.Options,
 			DirectOptions: common.PtrValueOrDefault(t.CustomDirect),
 		},
 		{
-			Tag:  BlockTag,
+			Tag:  blockTag,
 			Type: C.TypeBlock,
 		},
 		{
@@ -88,7 +89,7 @@ func (t *Template) renderOutbounds(metadata M.Metadata, options *option.Options,
 			selectorOutbound := option.Outbound{
 				Type:            C.TypeSelector,
 				Tag:             it.Name,
-				SelectorOptions: common.PtrValueOrDefault(t.CustomSelector),
+				SelectorOptions: common.PtrValueOrDefault(it.CustomSelector),
 			}
 			selectorOutbound.SelectorOptions.Outbounds = append(selectorOutbound.SelectorOptions.Outbounds, joinOutbounds...)
 			allGroups = append(allGroups, selectorOutbound)
@@ -174,9 +175,9 @@ func groupJoin(outbounds []option.Outbound, groupTag string, groupOutbounds ...s
 	groupOutbound := outbounds[groupIndex]
 	switch groupOutbound.Type {
 	case C.TypeSelector:
-		groupOutbound.SelectorOptions.Outbounds = append(groupOutbound.SelectorOptions.Outbounds, groupOutbounds...)
+		groupOutbound.SelectorOptions.Outbounds = common.Dup(append(groupOutbound.SelectorOptions.Outbounds, groupOutbounds...))
 	case C.TypeURLTest:
-		groupOutbound.URLTestOptions.Outbounds = append(groupOutbound.URLTestOptions.Outbounds, groupOutbounds...)
+		groupOutbound.URLTestOptions.Outbounds = common.Dup(append(groupOutbound.URLTestOptions.Outbounds, groupOutbounds...))
 	}
 	outbounds[groupIndex] = groupOutbound
 	return outbounds
