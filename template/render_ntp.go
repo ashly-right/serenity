@@ -1,16 +1,18 @@
 package template
 
 import (
+	"reflect"
 	"time"
 
 	"github.com/sagernet/sing-box/option"
+	"github.com/sagernet/sing/common/json/badoption"
 )
 
 func (t *Template) RenderNTP(options *option.Options) error {
 	if t.EnableNTP {
 		options.NTP = &option.NTPOptions{
 			Enabled:  true,
-			Interval: option.Duration(time.Minute * 30),
+			Interval: badoption.Duration(time.Minute * 30),
 		}
 
 		options.NTP.ServerPort = 123
@@ -29,7 +31,7 @@ func (t *Template) RenderNTP(options *option.Options) error {
 				options.NTP.Interval = t.CustomNTP.Interval
 			}
 
-			if t.CustomNTP.DialerOptions != (option.DialerOptions{}) {
+			if !reflect.DeepEqual(t.CustomNTP.DialerOptions, option.DialerOptions{}) {
 				options.NTP.DialerOptions = t.CustomNTP.DialerOptions
 			}
 		}
