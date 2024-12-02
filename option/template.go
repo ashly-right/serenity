@@ -5,7 +5,7 @@ import (
 
 	C "github.com/sagernet/serenity/constant"
 	"github.com/sagernet/sing-box/option"
-	"github.com/sagernet/sing-dns"
+	dns "github.com/sagernet/sing-dns"
 	E "github.com/sagernet/sing/common/exceptions"
 	"github.com/sagernet/sing/common/json"
 	"github.com/sagernet/sing/common/json/badjson"
@@ -125,10 +125,11 @@ func (r *RuleSet) UnmarshalJSON(content []byte) error {
 }
 
 type GitHubRuleSetOptions struct {
-	Repository string                     `json:"repository,omitempty"`
-	Path       string                     `json:"path,omitempty"`
-	Prefix     string                     `json:"prefix,omitempty"`
-	RuleSet    badoption.Listable[string] `json:"rule_set,omitempty"`
+	Repository     string                     `json:"repository,omitempty"`
+	Path           string                     `json:"path,omitempty"`
+	Prefix         string                     `json:"prefix,omitempty"`
+	RuleSet        badoption.Listable[string] `json:"rule_set,omitempty"`
+	DownloadDetour string                     `json:"download_detour,omitempty"`
 }
 
 func (t Template) DisableIPv6() bool {

@@ -80,6 +80,7 @@ func (t *Template) renderRuleSet(ruleSets []option.RuleSet) []boxOption.RuleSet 
 			} else {
 				downloadURL = "https://raw.githubusercontent.com/"
 				branchSplit = "/"
+				downloadDetour = ruleSet.GitHubOptions.DownloadDetour
 			}
 
 			for _, code := range ruleSet.GitHubOptions.RuleSet {
