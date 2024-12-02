@@ -18,6 +18,7 @@ import (
 	"github.com/sagernet/sing/common"
 	E "github.com/sagernet/sing/common/exceptions"
 	F "github.com/sagernet/sing/common/format"
+	"github.com/sagernet/sing/common/json/badoption"
 	"github.com/sagernet/sing/service"
 
 	"github.com/go-chi/chi/v5"
@@ -99,7 +100,7 @@ func New(ctx context.Context, options option.Options) (*Server, error) {
 		logFactory.NewLogger("profile"),
 		subscriptionManager,
 		templateManager,
-		common.Map(options.Outbounds, func(it boxOption.Listable[boxOption.Outbound]) []boxOption.Outbound {
+		common.Map(options.Outbounds, func(it badoption.Listable[boxOption.Outbound]) []boxOption.Outbound {
 			return it
 		}),
 		options.Profiles,
@@ -172,7 +173,7 @@ func (s *Server) Start() error {
 			s.logger.Error("server serve error: ", err)
 		}
 	}()
-	err = s.postStart()
+	err = s.subscription.PostStart(false)
 	if err != nil {
 		return err
 	}
@@ -180,11 +181,24 @@ func (s *Server) Start() error {
 	return nil
 }
 
-func (s *Server) postStart() error {
-	err := s.subscription.PostStart()
+func (s *Server) StartHeadless() error {
+	err := s.logFactory.Start()
 	if err != nil {
-		return E.Cause(err, "post-start subscription manager")
+		return err
 	}
+	err = s.cacheFile.Start()
+	if err != nil {
+		return err
+	}
+	err = s.subscription.Start()
+	if err != nil {
+		return err
+	}
+	err = s.subscription.PostStart(true)
+	if err != nil {
+		return err
+	}
+	s.logger.Info("headless serenity started (", F.Seconds(time.Since(s.createdAt).Seconds()), "s)")
 	return nil
 }
 

@@ -70,11 +70,7 @@ type resolveContext struct {
 }
 
 func resolveDestination(ctx *resolveContext, server option.Outbound) netip.AddrPort {
-	rawOptions, err := server.RawOptions()
-	if err != nil {
-		return netip.AddrPort{}
-	}
-	serverOptionsWrapper, loaded := rawOptions.(option.ServerOptionsWrapper)
+	serverOptionsWrapper, loaded := server.Options.(option.ServerOptionsWrapper)
 	if !loaded {
 		return netip.AddrPort{}
 	}
@@ -83,7 +79,9 @@ func resolveDestination(ctx *resolveContext, server option.Outbound) netip.AddrP
 		return serverOptions.AddrPort()
 	}
 	if serverOptions.IsFqdn() {
-		addresses, lookupErr := ctx.dnsClient.Lookup(ctx.ctx, ctx.dnsTransport, serverOptions.Fqdn, dns.DomainStrategyPreferIPv4)
+		addresses, lookupErr := ctx.dnsClient.Lookup(ctx.ctx, ctx.dnsTransport, serverOptions.Fqdn, dns.QueryOptions{
+			Strategy: dns.DomainStrategyPreferIPv4,
+		})
 		if lookupErr == nil && len(addresses) > 0 {
 			return netip.AddrPortFrom(addresses[0], serverOptions.Port)
 		}

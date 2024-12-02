@@ -4,54 +4,58 @@
 {
   "name": "",
   "extend": "",
-
+  
   // Global
 
   "log": {},
   "domain_strategy": "",
+  "domain_strategy_local": "",
   "disable_traffic_bypass": false,
-  "disable_rule_set": false,
+  "disable_sniff": false,
+  "disable_rule_action": false,
   "remote_resolve": false,
-
+  
   // DNS
 
-  "dns_default": "",
+  "dns": "",
   "dns_local": "",
   "enable_fakeip": false,
   "pre_dns_rules": [],
   "custom_dns_rules": [],
-
+  "custom_fakeip": {},
+  
   // Inbound
 
   "inbounds": [],
+  "auto_redirect": false,
   "disable_tun": false,
   "disable_system_proxy": false,
   "custom_tun": {},
   "custom_mixed": {},
-
+  
   // Outbound
 
   "extra_groups": [
     {
       "tag": "",
       "type": "",
+      "target": "",
+      "tag_per_subscription": "",
       "filter": "",
       "exclude": "",
       "custom_selector": {},
       "custom_urltest": {}
     }
   ],
-  "generate_global_urltest": false,
   "direct_tag": "",
   "default_tag": "",
   "urltest_tag": "",
   "custom_direct": {},
   "custom_selector": {},
   "custom_urltest": {},
-
+  
   // Route
 
-  "disable_default_rules": false,
   "pre_rules": [],
   "custom_rules": [],
   "enable_jsdelivr": false,
@@ -59,7 +63,7 @@
   "custom_geosite": {},
   "custom_rule_set": [],
   "post_rule_set": [],
-
+  
   // Experimental
 
   "disable_cache_file": false,
@@ -107,9 +111,22 @@ If `*_only` enabled, TUN and DNS will be configured to disable the other network
 
 Note that if want `prefer_*` to take effect on transparent proxy requests, set `enable_fakeip`.
 
-#### disable_rule_set
+`ipv4_only` is used by default when `enable_fakeip` disabled,
+`prefer_ipv4` is used by default when `enable_fakeip` enabled.
 
-Use `geoip` and `geosite` for traffic bypassing instead of rule sets.
+#### domain_strategy_local
+
+Local sing-box domain strategy.
+
+`prefer_ipv4` is used by default.
+
+#### disable_sniff
+
+Don`t generate protocol sniffing options.
+
+#### disable_rule_action
+
+Don`t generate rule action options.
 
 #### disable_traffic_bypass
 
@@ -119,7 +136,7 @@ Disable traffic bypass for Chinese DNS queries and connections.
 
 Don't generate `doamin_strategy` options for inbounds.
 
-#### dns_default
+#### dns
 
 Default DNS server.
 
@@ -147,9 +164,17 @@ List of [DNS Rule](https://sing-box.sagernet.org/configuration/dns/rule/).
 
 No default traffic bypassing DNS rules will be generated if not empty.
 
+#### custom_fakeip
+
+Custom [FakeIP](https://sing-box.sagernet.org/configuration/dns/fakeip/) template.
+
 #### inbounds
 
 List of [Inbound](https://sing-box.sagernet.org/configuration/inbound/).
+
+#### auto_redirect
+
+Generate [auto-redirect](https://sing-box.sagernet.org/configuration/inbound/tun/#auto_redirect) options for android and unknown platforms.
 
 #### disable_tun
 
@@ -185,6 +210,20 @@ Tag of the group outbound.
 
 Type of the group outbound.
 
+#### extra_groups.target
+
+| Value          | Description                                                |
+|----------------|------------------------------------------------------------|
+| `default`      | No additional behaviors.                                   |
+| `global`       | Generate a group and add it to default selector.           |
+| `subscription` | Generate a internal group for every subscription selector. |
+
+#### extra_groups.tag_per_subscription
+
+Tag for every new subscription internal group when `target` is `subscription`.
+
+`{{ .tag }} ({{ .subscription_name }})` is used by default.
+
 #### extra_groups.filter
 
 Regexp filter rules, non-matching outbounds will be removed.
@@ -200,10 +239,6 @@ Custom [Selector](https://sing-box.sagernet.org/configuration/outbound/selector/
 #### extra_groups.custom_urltest
 
 Custom [URLTest](https://sing-box.sagernet.org/configuration/outbound/urltest/) template.
-
-#### generate_global_urltest
-
-Generate a global `URLTest` outbound with all global outbounds.
 
 #### direct_tag
 
@@ -228,10 +263,6 @@ Custom [Selector](https://sing-box.sagernet.org/configuration/outbound/selector/
 #### custom_urltest
 
 Custom [URLTest](https://sing-box.sagernet.org/configuration/outbound/urltest/) outbound template.
-
-#### disable_default_rules
-
-Don't generate some useful rules.
 
 #### pre_rules
 

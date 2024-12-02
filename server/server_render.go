@@ -2,14 +2,16 @@ package server
 
 import (
 	"bytes"
-	"encoding/json"
 	"net/http"
 	"strings"
 
+	"github.com/sagernet/serenity/common/metadata"
 	M "github.com/sagernet/serenity/common/metadata"
 	"github.com/sagernet/serenity/option"
+	boxOption "github.com/sagernet/sing-box/option"
 	"github.com/sagernet/sing/common"
 	E "github.com/sagernet/sing/common/exceptions"
+	"github.com/sagernet/sing/common/json"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/cors"
@@ -72,8 +74,7 @@ func (s *Server) render(writer http.ResponseWriter, request *http.Request) {
 		s.accessLog(request, http.StatusNotFound, 0)
 		return
 	}
-	metadata := M.Detect(request.Header.Get("User-Agent"))
-	options, err := profile.Render(metadata)
+	options, err := profile.Render(M.Detect(request.Header.Get("User-Agent")))
 	if err != nil {
 		s.logger.Error(E.Cause(err, "render options"))
 		render.Status(request, http.StatusInternalServerError)
@@ -82,7 +83,7 @@ func (s *Server) render(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 	var buffer bytes.Buffer
-	encoder := json.NewEncoder(&buffer)
+	encoder := json.NewEncoderContext(s.ctx, &buffer)
 	encoder.SetIndent("", "  ")
 	err = encoder.Encode(&options)
 	if err != nil {
@@ -96,6 +97,23 @@ func (s *Server) render(writer http.ResponseWriter, request *http.Request) {
 	writer.WriteHeader(http.StatusOK)
 	writer.Write(buffer.Bytes())
 	s.accessLog(request, http.StatusOK, buffer.Len())
+}
+
+func (s *Server) RenderHeadless(profileName string, metadata metadata.Metadata) (*boxOption.Options, error) {
+	var profile *Profile
+	if profileName == "" {
+		s.profile.DefaultProfile()
+	} else {
+		profile = s.profile.ProfileByName(profileName)
+	}
+	if profile == nil {
+		return nil, E.New("profile not found")
+	}
+	options, err := profile.Render(metadata)
+	if err != nil {
+		return nil, E.Cause(err, "render options")
+	}
+	return options, nil
 }
 
 func (s *Server) accessLog(request *http.Request, responseCode int, responseLen int) {

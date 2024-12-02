@@ -2,6 +2,52 @@
 icon: material/alert-decagram
 ---
 
+#### 1.1.0-alpha.4
+
+* Fixes and improvements
+
+#### 1.1.0-alpha.3
+
+* If `extra_groups.include/exclude` is not set,
+  subscription groups instead of subscription outbounds will be used as group outbounds
+* Add `template.custom_fakeip`
+* Fixes and improvements
+
+#### 1.1.0-alpha.1
+
+* Add support for rule actions
+
+#### 1.0.0-beta.19
+
+* Fixes and improvements
+
+#### 1.0.0-beta.17
+
+* Replace `template.extra_groups.<per_subscription/exclude_outbounds>` with `target`
+
+#### 1.0.0-beta.16
+
+* Add `export <profile>` command to export configuration without running the server
+* Add `template.extra_groups.exclude_outbounds`
+* Add `template.extra_groups.<per_subscription/tag_per_subscription>`
+
+#### 1.0.0-beta.15
+
+* Add support for inline rule-sets **1**
+
+**1**:
+
+Will be merged into route and DNS rules in older versions.
+
+#### 1.0.0-beta.14
+
+* Rename `template.dns_default` to `template.dns`
+* Add `template.domain_strategy_local`
+
+#### 1.0.0-beta.13
+
+* Add `template.auto_redirect`
+
 #### 1.0.0-beta.12
 
 * Fixes and improvements

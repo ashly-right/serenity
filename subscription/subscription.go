@@ -103,10 +103,12 @@ func (m *Manager) processSubscription(s *Subscription, onUpdate bool) {
 	s.Servers = servers
 }
 
-func (m *Manager) PostStart() error {
+func (m *Manager) PostStart(headless bool) error {
 	m.updateAll()
-	m.updateTicker = time.NewTicker(m.updateInterval)
-	go m.loopUpdate()
+	if !headless {
+		m.updateTicker = time.NewTicker(m.updateInterval)
+		go m.loopUpdate()
+	}
 	return nil
 }
 
@@ -185,7 +187,7 @@ func (m *Manager) update(subscription *Subscription) error {
 		response.Body.Close()
 		return err
 	}
-	rawServers, err := parser.ParseSubscription(string(content))
+	rawServers, err := parser.ParseSubscription(m.ctx, string(content))
 	if err != nil {
 		response.Body.Close()
 		return err

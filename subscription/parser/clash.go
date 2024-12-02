@@ -1,12 +1,14 @@
 package parser
 
 import (
+	"context"
 	"strings"
 
 	C "github.com/sagernet/sing-box/constant"
 	"github.com/sagernet/sing-box/option"
 	E "github.com/sagernet/sing/common/exceptions"
 	"github.com/sagernet/sing/common/format"
+	"github.com/sagernet/sing/common/json/badoption"
 	N "github.com/sagernet/sing/common/network"
 
 	"github.com/Dreamacro/clash/adapter"
@@ -16,7 +18,7 @@ import (
 	"github.com/Dreamacro/clash/constant"
 )
 
-func ParseClashSubscription(content string) ([]option.Outbound, error) {
+func ParseClashSubscription(_ context.Context, content string) ([]option.Outbound, error) {
 	config, err := config.UnmarshalRawConfig([]byte(content))
 	if err != nil {
 		return nil, E.Cause(err, "parse clash config")
@@ -38,7 +40,7 @@ func ParseClashSubscription(content string) ([]option.Outbound, error) {
 				return nil, err
 			}
 			outbound.Type = C.TypeShadowsocks
-			outbound.ShadowsocksOptions = option.ShadowsocksOutboundOptions{
+			outbound.Options = &option.ShadowsocksOutboundOptions{
 				ServerOptions: option.ServerOptions{
 					Server:     ssOption.Server,
 					ServerPort: uint16(ssOption.Port),
@@ -56,7 +58,7 @@ func ParseClashSubscription(content string) ([]option.Outbound, error) {
 				return nil, err
 			}
 			outbound.Type = C.TypeShadowsocksR
-			outbound.ShadowsocksROptions = option.ShadowsocksROutboundOptions{
+			outbound.Options = &option.ShadowsocksROutboundOptions{
 				ServerOptions: option.ServerOptions{
 					Server:     ssrOption.Server,
 					ServerPort: uint16(ssrOption.Port),
@@ -76,7 +78,7 @@ func ParseClashSubscription(content string) ([]option.Outbound, error) {
 				return nil, err
 			}
 			outbound.Type = C.TypeTrojan
-			outbound.TrojanOptions = option.TrojanOutboundOptions{
+			outbound.Options = &option.TrojanOutboundOptions{
 				ServerOptions: option.ServerOptions{
 					Server:     trojanOption.Server,
 					ServerPort: uint16(trojanOption.Port),
@@ -100,7 +102,7 @@ func ParseClashSubscription(content string) ([]option.Outbound, error) {
 				return nil, err
 			}
 			outbound.Type = C.TypeVMess
-			outbound.VMessOptions = option.VMessOutboundOptions{
+			outbound.Options = &option.VMessOutboundOptions{
 				ServerOptions: option.ServerOptions{
 					Server:     vmessOption.Server,
 					ServerPort: uint16(vmessOption.Port),
@@ -131,7 +133,7 @@ func ParseClashSubscription(content string) ([]option.Outbound, error) {
 			}
 
 			outbound.Type = C.TypeSOCKS
-			outbound.SocksOptions = option.SocksOutboundOptions{
+			outbound.Options = &option.SOCKSOutboundOptions{
 				ServerOptions: option.ServerOptions{
 					Server:     socks5Option.Server,
 					ServerPort: uint16(socks5Option.Port),
@@ -152,7 +154,7 @@ func ParseClashSubscription(content string) ([]option.Outbound, error) {
 			}
 
 			outbound.Type = C.TypeHTTP
-			outbound.HTTPOptions = option.HTTPOutboundOptions{
+			outbound.Options = &option.HTTPOutboundOptions{
 				ServerOptions: option.ServerOptions{
 					Server:     httpOption.Server,
 					ServerPort: uint16(httpOption.Port),
@@ -206,11 +208,11 @@ func (o shadowsocksPluginOptionsBuilder) Build() string {
 }
 
 func clashPluginOptions(plugin string, opts map[string]any) string {
-	options := shadowsocksPluginOptionsBuilder(opts)
+	options := make(shadowsocksPluginOptionsBuilder)
 	switch plugin {
 	case "obfs":
-		options["mode"] = opts["mode"]
-		options["host"] = opts["host"]
+		options["obfs"] = opts["mode"]
+		options["obfs-host"] = opts["host"]
 	case "v2ray-plugin":
 		options["mode"] = opts["mode"]
 		options["tls"] = opts["tls"]
@@ -223,10 +225,10 @@ func clashPluginOptions(plugin string, opts map[string]any) string {
 func clashTransport(network string, httpOpts clash_outbound.HTTPOptions, h2Opts clash_outbound.HTTP2Options, grpcOpts clash_outbound.GrpcOptions, wsOpts clash_outbound.WSOptions) *option.V2RayTransportOptions {
 	switch network {
 	case "http":
-		var headers map[string]option.Listable[string]
+		var headers map[string]badoption.Listable[string]
 		for key, values := range httpOpts.Headers {
 			if headers == nil {
-				headers = make(map[string]option.Listable[string])
+				headers = make(map[string]badoption.Listable[string])
 			}
 			headers[key] = values
 		}
@@ -254,10 +256,10 @@ func clashTransport(network string, httpOpts clash_outbound.HTTPOptions, h2Opts 
 			},
 		}
 	case "ws":
-		var headers map[string]option.Listable[string]
+		var headers map[string]badoption.Listable[string]
 		for key, value := range wsOpts.Headers {
 			if headers == nil {
-				headers = make(map[string]option.Listable[string])
+				headers = make(map[string]badoption.Listable[string])
 			}
 			headers[key] = []string{value}
 		}
